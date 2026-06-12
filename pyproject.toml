@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "featmap"
+dynamic = ["version"]
+description = "AI-maintained feature map (MAP.md) for your project: init, validate and cross-link a Minto-pyramid map"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["documentation", "ai", "feature-map", "markdown", "minto"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Documentation",
+    "Topic :: Software Development :: Documentation",
+]
+
+[project.scripts]
+featmap = "featmap.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/ysz7/featmap"
+Issues = "https://github.com/ysz7/featmap/issues"
+
+[tool.hatch.version]
+path = "src/featmap/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/featmap"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
