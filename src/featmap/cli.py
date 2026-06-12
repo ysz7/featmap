@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 from featmap import FORMAT_VERSION, __version__, gitutils
+from featmap.initializer import init_project
 from featmap.parser import Violation, parse
 from featmap.validator import MAP_FILENAME, check_staged, validate
 
@@ -27,6 +28,10 @@ def _read_map(path: Path) -> tuple[str, str]:
 def _print_violations(violations: list[Violation]) -> None:
     for violation in sorted(violations, key=lambda v: (v.line, v.code, v.message)):
         print(f"{MAP_FILENAME}:{violation.line}: {violation.code} {violation.message}")
+
+
+def cmd_init(args: argparse.Namespace) -> int:
+    return init_project(_find_root(), hook=args.hook, target=args.target)
 
 
 def cmd_check(args: argparse.Namespace) -> int:
@@ -60,6 +65,17 @@ def build_parser() -> argparse.ArgumentParser:
         description="AI-maintained feature map (MAP.md): init, validate, cross-link.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
+
+    p_init = sub.add_parser("init", help="create MAP.md, assistant rules and optionally a hook")
+    p_init.add_argument(
+        "--hook", action="store_true", help="also install the pre-commit reminder hook"
+    )
+    p_init.add_argument(
+        "--target",
+        choices=("agents", "claude"),
+        help="where to write assistant rules when both AGENTS.md and CLAUDE.md are options",
+    )
+    p_init.set_defaults(func=cmd_init)
 
     p_check = sub.add_parser("check", help="validate MAP.md and print violations")
     p_check.add_argument(
