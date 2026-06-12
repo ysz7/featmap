@@ -1,4 +1,4 @@
-"""Reverse dependency links: compute and regenerate '**Используется:**' lines."""
+"""Reverse dependency links: compute and regenerate '**Used by:**' lines."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ def render_used_by(entries: list[tuple[str, str]]) -> str:
 
 
 def update_used_by(text: str) -> tuple[str, int]:
-    """Rewrite only the '**Используется:**' lines; return (new text, changed features).
+    """Rewrite only the '**Used by:**' lines; return (new text, changed features).
 
     Features with incoming dependencies get the line (inserted after the last
     field if absent); features without incoming dependencies get it removed.

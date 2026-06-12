@@ -10,13 +10,13 @@ from featmap.validator import check_staged, validate
 
 HEADER = """\
 <!-- featmap v1 -->
-# Проект: demo
+# Project: demo
 
-Описание проекта.
+Project description.
 
-## Слой: Ядро
+## Layer: Core
 
-Описание слоя.
+Layer description.
 
 """
 
@@ -25,10 +25,10 @@ def feature(title: str, anchor: str, depends: str = "—", status: str = "active
             files: str = "`src/a.py`") -> str:
     return (
         f"### {title} {{#{anchor}}}\n\n"
-        f"**Что:** Делает что-то.\n"
-        f"**Файлы:** {files}\n"
-        f"**Зависит:** {depends}\n"
-        f"**Статус:** {status}\n\n"
+        f"**What:** Does something.\n"
+        f"**Files:** {files}\n"
+        f"**Depends:** {depends}\n"
+        f"**Status:** {status}\n\n"
     )
 
 
@@ -45,13 +45,13 @@ def test_valid_map_is_clean(valid_repo: Path):
 
 
 def test_e2_duplicate_anchor():
-    text = HEADER + feature("А", "same") + feature("Б", "same")
+    text = HEADER + feature("Alpha", "same") + feature("Beta", "same")
     violations = run_validate(text)
     assert any(v.code == "E2" and "#same" in v.message for v in violations)
 
 
 def test_e3_unknown_dependency():
-    text = HEADER + feature("А", "a", depends="[Призрак](#ghost)")
+    text = HEADER + feature("Alpha", "a", depends="[Ghost](#ghost)")
     violations = run_validate(text)
     assert any(v.code == "E3" and "#ghost" in v.message for v in violations)
 
@@ -59,8 +59,8 @@ def test_e3_unknown_dependency():
 def test_e4_dependency_cycle():
     text = (
         HEADER
-        + feature("А", "a", depends="[Б](#b)")
-        + feature("Б", "b", depends="[А](#a)")
+        + feature("Alpha", "a", depends="[Beta](#b)")
+        + feature("Beta", "b", depends="[Alpha](#a)")
     )
     violations = run_validate(text)
     cycles = [v for v in violations if v.code == "E4"]
@@ -70,7 +70,7 @@ def test_e4_dependency_cycle():
 
 
 def test_e4_self_cycle():
-    text = HEADER + feature("А", "a", depends="[А](#a)")
+    text = HEADER + feature("Alpha", "a", depends="[Alpha](#a)")
     violations = run_validate(text)
     assert any(v.code == "E4" for v in violations)
 
@@ -78,7 +78,7 @@ def test_e4_self_cycle():
 def test_w1_missing_file(tmp_path: Path):
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "a.py").write_text("x = 1\n", encoding="utf-8")
-    text = HEADER + feature("А", "a", files="`src/a.py`, `src/missing.py`")
+    text = HEADER + feature("Alpha", "a", files="`src/a.py`, `src/missing.py`")
     violations = run_validate(text, repo_root=tmp_path)
     w1 = [v for v in violations if v.code == "W1"]
     assert len(w1) == 1
@@ -88,37 +88,37 @@ def test_w1_missing_file(tmp_path: Path):
 def test_w2_depends_on_deprecated():
     text = (
         HEADER
-        + feature("Старая", "old", status="deprecated")
-        + feature("Новая", "new", depends="[Старая](#old)")
+        + feature("Old", "old", status="deprecated")
+        + feature("New", "new", depends="[Old](#old)")
     )
     violations = run_validate(text)
     assert any(v.code == "W2" and "#old" in v.message for v in violations)
 
 
 def test_w3_used_by_out_of_sync():
-    # 'b' depends on 'a', but 'a' has no '**Используется:**' line.
-    text = HEADER + feature("А", "a") + feature("Б", "b", depends="[А](#a)")
+    # 'b' depends on 'a', but 'a' has no '**Used by:**' line.
+    text = HEADER + feature("Alpha", "a") + feature("Beta", "b", depends="[Alpha](#a)")
     violations = run_validate(text)
     assert any(v.code == "W3" and "#a" in v.message for v in violations)
 
 
 def test_w3_stale_used_by_line():
-    text = HEADER + feature("А", "a").replace(
-        "**Статус:** active\n",
-        "**Статус:** active\n**Используется:** <!-- autogen --> [Призрак](#ghost)\n",
+    text = HEADER + feature("Alpha", "a").replace(
+        "**Status:** active\n",
+        "**Status:** active\n**Used by:** <!-- autogen --> [Ghost](#ghost)\n",
     )
     violations = run_validate(text)
     assert any(v.code == "W3" for v in violations)
 
 
 def test_w4_layer_without_features():
-    text = HEADER + feature("А", "a") + "## Слой: Пустой\n\nНичего нет.\n"
+    text = HEADER + feature("Alpha", "a") + "## Layer: Empty\n\nNothing here.\n"
     violations = run_validate(text)
-    assert any(v.code == "W4" and "Пустой" in v.message for v in violations)
+    assert any(v.code == "W4" and "Empty" in v.message for v in violations)
 
 
 def test_w4_feature_without_files():
-    text = HEADER + feature("А", "a", files="—")
+    text = HEADER + feature("Alpha", "a", files="—")
     violations = run_validate(text)
     assert any(v.code == "W4" and "#a" in v.message for v in violations)
 
@@ -131,7 +131,7 @@ def test_check_cli_clean_map(valid_repo: Path, monkeypatch, capsys):
 
 def test_check_cli_reports_line_numbers(valid_repo: Path, monkeypatch, capsys):
     (valid_repo / "MAP.md").write_text(
-        VALID_MAP.replace("**Статус:** active\n**Исп", "**Статус:** done\n**Исп"),
+        VALID_MAP.replace("**Status:** active\n**Used", "**Status:** done\n**Used"),
         encoding="utf-8",
     )
     monkeypatch.chdir(valid_repo)
@@ -169,8 +169,8 @@ def test_v10_quiet_when_map_section_staged(valid_repo: Path):
     (valid_repo / "src" / "parser.py").write_text("changed = True\n", encoding="utf-8")
     map_text = (valid_repo / "MAP.md").read_text(encoding="utf-8")
     map_text = map_text.replace(
-        "**Что:** Разбирает MAP.md в модель данных.",
-        "**Что:** Разбирает MAP.md в модель данных построчно.",
+        "**What:** Parses MAP.md into a data model.",
+        "**What:** Parses MAP.md into a data model line by line.",
     )
     (valid_repo / "MAP.md").write_text(map_text, encoding="utf-8")
     git(["add", "src/parser.py", "MAP.md"], valid_repo)

@@ -66,28 +66,28 @@ The hook never blocks a commit — it only warns (blocking hooks get disabled).
 
 ```markdown
 <!-- featmap v1 -->
-# Проект: shopd
+# Project: shopd
 
-Бэкенд интернет-магазина: каталог, корзина, оплата.
-Карта — вершина пирамиды: можно остановиться на любом уровне.
+E-commerce backend: catalog, cart, payments.
+The map is the top of the pyramid: you can stop reading at any level.
 
-## Слой: Платежи
+## Layer: Payments
 
-Всё, что касается денег: провайдеры, вебхуки, возвраты.
+Everything money-related: providers, webhooks, refunds.
 
-### Приём оплаты {#checkout-payment}
+### Checkout payment {#checkout-payment}
 
-**Что:** Проводит платёж через провайдера и фиксирует результат заказа.
-**Файлы:** `app/payments/charge.py`, `app/payments/webhook.py:42`
-**Зависит:** [Корзина](#cart)
-**Статус:** active
-**Используется:** <!-- autogen --> [Возвраты](#refunds)
+**What:** Charges the customer via the provider and records the order result.
+**Files:** `app/payments/charge.py`, `app/payments/webhook.py:42`
+**Depends:** [Cart](#cart)
+**Status:** active
+**Used by:** <!-- autogen --> [Refunds](#refunds)
 ```
 
-Format rules (v1): exactly one `#`; `##` only for layers (`## Слой: ...`);
+Format rules (v1): exactly one `#`; `##` only for layers (`## Layer: ...`);
 `###` only for features with a unique kebab-case `{#anchor}`; no deeper
-headings; fields in fixed order `**Что:** / **Файлы:** / **Зависит:** /
-**Статус:**`; feature body ≤ 6 lines; paths relative to the repo root.
+headings; fields in fixed order `**What:** / **Files:** / **Depends:** /
+**Status:**`; feature body ≤ 6 lines; paths relative to the repo root.
 This very repository dogfoods the format — see [MAP.md](MAP.md).
 
 ## Commands
@@ -96,7 +96,7 @@ This very repository dogfoods the format — see [MAP.md](MAP.md).
 |---|---|
 | `featmap init [--hook] [--target agents\|claude]` | create `MAP.md`, rules block, hook |
 | `featmap check [--staged] [--strict]` | validate the map, print `MAP.md:<line>: <CODE> <message>` |
-| `featmap links` | regenerate the `**Используется:**` reverse-link lines |
+| `featmap links` | regenerate the `**Used by:**` reverse-link lines |
 | `featmap version` | print tool and format versions |
 
 `check` exits `1` on errors (`E*`), `0` with output on warnings (`W*`, `V10`);
@@ -107,11 +107,11 @@ staged file belongs to a feature whose `MAP.md` section has no staged changes.
 |---|---|
 | E1 | format rule F1–F10 broken (marker, structure, fields, status…) |
 | E2 | duplicate `{#anchor}` |
-| E3 | `**Зависит:**` points to a non-existent anchor |
+| E3 | `**Depends:**` points to a non-existent anchor |
 | E4 | dependency cycle |
-| W1 | a path in `**Файлы:**` does not exist |
+| W1 | a path in `**Files:**` does not exist |
 | W2 | something depends on a `deprecated` feature |
-| W3 | `**Используется:**` out of sync — run `featmap links` |
+| W3 | `**Used by:**` out of sync — run `featmap links` |
 | W4 | layer without features / feature without files |
 | V10 | (only `--staged`) staged code change without a map update |
 

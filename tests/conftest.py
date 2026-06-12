@@ -9,33 +9,33 @@ import pytest
 # src/validator.py and src/rules.py, which fixtures create on disk.
 VALID_MAP = """\
 <!-- featmap v1 -->
-# Проект: demo
+# Project: demo
 
-Демо-проект для тестов featmap.
-Вторая строка описания.
+Demo project for featmap tests.
+Second line of the description.
 
 <!--
-Шпаргалка формата: комментарии парсер игнорирует.
+Format cheat sheet: the parser ignores comments.
 -->
 
-## Слой: Ядро
+## Layer: Core
 
-Основная логика.
+Core logic.
 
-### Парсер {#parser}
+### Parser {#parser}
 
-**Что:** Разбирает MAP.md в модель данных.
-**Файлы:** `src/parser.py`
-**Зависит:** —
-**Статус:** active
-**Используется:** <!-- autogen --> [Валидатор](#validator)
+**What:** Parses MAP.md into a data model.
+**Files:** `src/parser.py`
+**Depends:** —
+**Status:** active
+**Used by:** <!-- autogen --> [Validator](#validator)
 
-### Валидатор {#validator}
+### Validator {#validator}
 
-**Что:** Проверяет правила формата и семантики.
-**Файлы:** `src/validator.py`, `src/rules.py:10`
-**Зависит:** [Парсер](#parser)
-**Статус:** active
+**What:** Checks format and semantic rules.
+**Files:** `src/validator.py`, `src/rules.py:10`
+**Depends:** [Parser](#parser)
+**Status:** active
 """
 
 VALID_MAP_FILES = ["src/parser.py", "src/validator.py", "src/rules.py"]

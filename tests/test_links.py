@@ -11,51 +11,51 @@ from featmap.validator import validate
 
 MAP_A_DEPENDS_B = """\
 <!-- featmap v1 -->
-# Проект: demo
+# Project: demo
 
-Описание проекта.
+Project description.
 
-## Слой: Ядро
+## Layer: Core
 
-Описание слоя.
+Layer description.
 
-### А {#a}
+### Alpha {#a}
 
-**Что:** Использует Б.
-**Файлы:** `src/a.py`
-**Зависит:** [Б](#b)
-**Статус:** active
+**What:** Uses Beta.
+**Files:** `src/a.py`
+**Depends:** [Beta](#b)
+**Status:** active
 
-### Б {#b}
+### Beta {#b}
 
-**Что:** Базовый механизм.
-**Файлы:** `src/b.py`
-**Зависит:** —
-**Статус:** active
+**What:** Base mechanism.
+**Files:** `src/b.py`
+**Depends:** —
+**Status:** active
 """
 
 
 def test_compute_used_by():
     result = parse(MAP_A_DEPENDS_B)
     incoming = compute_used_by(result.features)
-    assert incoming == {"b": [("А", "a")]}
+    assert incoming == {"b": [("Alpha", "a")]}
 
 
 def test_links_adds_reverse_link():
     new_text, changed = update_used_by(MAP_A_DEPENDS_B)
     assert changed == 1
     lines = new_text.split("\n")
-    assert "**Используется:** <!-- autogen --> [А](#a)" in lines
+    assert "**Used by:** <!-- autogen --> [Alpha](#a)" in lines
     # The line is appended to feature 'b', right after its status line.
-    idx = lines.index("**Статус:** active", lines.index("### Б {#b}"))
-    assert lines[idx + 1] == "**Используется:** <!-- autogen --> [А](#a)"
+    idx = lines.index("**Status:** active", lines.index("### Beta {#b}"))
+    assert lines[idx + 1] == "**Used by:** <!-- autogen --> [Alpha](#a)"
 
 
 def test_links_touches_nothing_else():
     new_text, _ = update_used_by(MAP_A_DEPENDS_B)
     old_lines = set(MAP_A_DEPENDS_B.split("\n"))
     extra = [line for line in new_text.split("\n") if line not in old_lines]
-    assert extra == ["**Используется:** <!-- autogen --> [А](#a)"]
+    assert extra == ["**Used by:** <!-- autogen --> [Alpha](#a)"]
 
 
 def test_links_is_idempotent():
@@ -67,10 +67,10 @@ def test_links_is_idempotent():
 
 def test_links_removes_stale_line():
     text, _ = update_used_by(MAP_A_DEPENDS_B)
-    text = text.replace("**Зависит:** [Б](#b)", "**Зависит:** —")
+    text = text.replace("**Depends:** [Beta](#b)", "**Depends:** —")
     new_text, changed = update_used_by(text)
     assert changed == 1
-    assert "Используется" not in new_text
+    assert "Used by" not in new_text
 
 
 def test_links_result_passes_w3():
@@ -83,7 +83,7 @@ def test_links_result_passes_w3():
 def test_links_cli_roundtrip(valid_repo: Path, monkeypatch, capsys):
     # Break the sync: drop the autogen line from the reference map.
     broken = "\n".join(
-        line for line in VALID_MAP.split("\n") if not line.startswith("**Используется:**")
+        line for line in VALID_MAP.split("\n") if not line.startswith("**Used by:**")
     )
     (valid_repo / "MAP.md").write_text(broken, encoding="utf-8")
     monkeypatch.chdir(valid_repo)
@@ -97,7 +97,7 @@ def test_links_cli_roundtrip(valid_repo: Path, monkeypatch, capsys):
 
 
 def test_links_cli_refuses_on_errors(valid_repo: Path, monkeypatch, capsys):
-    broken = VALID_MAP.replace("**Зависит:** [Парсер](#parser)", "**Зависит:** [X](#ghost)")
+    broken = VALID_MAP.replace("**Depends:** [Parser](#parser)", "**Depends:** [X](#ghost)")
     (valid_repo / "MAP.md").write_text(broken, encoding="utf-8")
     monkeypatch.chdir(valid_repo)
     assert cli.main(["links"]) == 1
@@ -107,7 +107,7 @@ def test_links_cli_refuses_on_errors(valid_repo: Path, monkeypatch, capsys):
 
 def test_links_preserves_crlf(valid_repo: Path, monkeypatch):
     broken = "\n".join(
-        line for line in VALID_MAP.split("\n") if not line.startswith("**Используется:**")
+        line for line in VALID_MAP.split("\n") if not line.startswith("**Used by:**")
     )
     (valid_repo / "MAP.md").write_bytes(broken.replace("\n", "\r\n").encode("utf-8"))
     monkeypatch.chdir(valid_repo)
