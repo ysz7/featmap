@@ -129,3 +129,31 @@ def test_hook_template_never_blocks_commit():
     content = read_template("pre-commit")
     assert content.startswith("#!/bin/sh")
     assert content.rstrip().splitlines()[-1].startswith("exit 0")
+
+
+def test_installed_hook_warns_but_commits(valid_repo: Path):
+    import subprocess
+    import sys
+
+    from conftest import git
+
+    git(["add", "."], valid_repo)
+    git(["commit", "-q", "-m", "base"], valid_repo)
+    init_project(valid_repo, hook=True, interactive=False)
+    git(["add", "AGENTS.md"], valid_repo)
+    git(["commit", "-q", "-m", "featmap setup"], valid_repo)
+    # Stage a feature file without touching MAP.md: V10 should warn,
+    # but the hook must not block the commit.
+    (valid_repo / "src" / "parser.py").write_text("changed = True\n", encoding="utf-8")
+    git(["add", "src/parser.py"], valid_repo)
+    env = dict(os.environ)
+    env["PATH"] = str(Path(sys.executable).parent) + os.pathsep + env["PATH"]
+    result = subprocess.run(
+        ["git", "commit", "-m", "change parser"],
+        cwd=valid_repo,
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "V10" in result.stdout + result.stderr

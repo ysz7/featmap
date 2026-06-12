@@ -8,6 +8,7 @@ from pathlib import Path
 
 from featmap import FORMAT_VERSION, __version__, gitutils
 from featmap.initializer import init_project
+from featmap.links import update_used_by
 from featmap.parser import Violation, parse
 from featmap.validator import MAP_FILENAME, check_staged, validate
 
@@ -54,6 +55,31 @@ def cmd_check(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_links(_args: argparse.Namespace) -> int:
+    root = _find_root()
+    map_path = root / MAP_FILENAME
+    if not map_path.is_file():
+        print(f"featmap: {MAP_FILENAME} not found in {root} (run 'featmap init')", file=sys.stderr)
+        return 1
+    text, eol = _read_map(map_path)
+    result = parse(text)
+    errors = [v for v in result.violations if v.is_error]
+    errors.extend(v for v in validate(result, repo_root=root) if v.is_error)
+    if errors:
+        _print_violations(errors)
+        print("featmap: fix the errors above before running 'featmap links'", file=sys.stderr)
+        return 1
+    new_text, changed = update_used_by(text)
+    if changed:
+        if eol == "\r\n":
+            new_text = new_text.replace("\n", "\r\n")
+        map_path.write_bytes(new_text.encode("utf-8"))
+        print(f"updated '**Используется:**' for {changed} feature(s)")
+    else:
+        print("'**Используется:**' lines already in sync")
+    return 0
+
+
 def cmd_version(_args: argparse.Namespace) -> int:
     print(f"featmap {__version__} (map format v{FORMAT_VERSION})")
     return 0
@@ -87,6 +113,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--strict", action="store_true", help="treat warnings as errors (exit code 1)"
     )
     p_check.set_defaults(func=cmd_check)
+
+    p_links = sub.add_parser(
+        "links", help="regenerate '**Используется:**' reverse links in MAP.md"
+    )
+    p_links.set_defaults(func=cmd_links)
 
     p_version = sub.add_parser("version", help="print tool and map format versions")
     p_version.set_defaults(func=cmd_version)
