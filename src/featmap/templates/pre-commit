@@ -1,0 +1,10 @@
+#!/bin/sh
+# featmap pre-commit hook
+if command -v featmap >/dev/null 2>&1; then
+  featmap check --staged
+elif command -v uvx >/dev/null 2>&1; then
+  uvx featmap check --staged
+else
+  echo "[featmap] featmap/uvx not found, skipping check" >&2
+fi
+exit 0   # never blocks the commit (warnings only)
