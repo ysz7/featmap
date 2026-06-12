@@ -14,15 +14,15 @@ MARKER = "<!-- featmap v1 -->"
 AUTOGEN_MARK = "<!-- autogen -->"
 STATUSES = ("active", "wip", "deprecated")
 
-FIELD_WHAT = "Что"
-FIELD_FILES = "Файлы"
-FIELD_DEPENDS = "Зависит"
-FIELD_STATUS = "Статус"
-FIELD_USED_BY = "Используется"
+FIELD_WHAT = "What"
+FIELD_FILES = "Files"
+FIELD_DEPENDS = "Depends"
+FIELD_STATUS = "Status"
+FIELD_USED_BY = "Used by"
 REQUIRED_FIELDS = (FIELD_WHAT, FIELD_FILES, FIELD_DEPENDS, FIELD_STATUS)
 
-_RE_FIELD = re.compile(r"^\*\*(Что|Файлы|Зависит|Статус|Используется):\*\*\s*(.*)$")
-_RE_LAYER = re.compile(r"^##\s+Слой:\s*(\S.*?)\s*$")
+_RE_FIELD = re.compile(r"^\*\*(What|Files|Depends|Status|Used by):\*\*\s*(.*)$")
+_RE_LAYER = re.compile(r"^##\s+Layer:\s*(\S.*?)\s*$")
 _RE_FEATURE = re.compile(r"^###\s+(.+?)\s*\{#([^}]*)\}\s*$")
 _RE_FEATURE_LOOSE = re.compile(r"^###\s+(.+?)\s*$")
 _RE_KEBAB = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -175,7 +175,7 @@ class _Parser:
         if m:
             name = m.group(1)
         else:
-            self.error("E1", ln, "F3: '##' headings must be layers: '## Слой: <имя>'")
+            self.error("E1", ln, "F3: '##' headings must be layers: '## Layer: <name>'")
             name = stripped[3:].strip()
         layer = Layer(name=name, line=ln)
         self.layers.append(layer)
@@ -193,7 +193,7 @@ class _Parser:
                     "E1", ln, f"F4: anchor '#{anchor}' must be kebab-case ([a-z0-9] and '-')"
                 )
         else:
-            self.error("E1", ln, "F4: feature heading must carry an anchor: '### Имя {#kebab-id}'")
+            self.error("E1", ln, "F4: feature heading must carry an anchor: '### Name {#kebab-id}'")
             loose = _RE_FEATURE_LOOSE.match(stripped)
             title = loose.group(1) if loose else stripped[4:].strip()
             anchor = ""
@@ -202,7 +202,7 @@ class _Parser:
         if self.layer is not None:
             self.layer.features.append(feature)
         else:
-            self.error("E1", ln, "F4: feature defined outside of any '## Слой:' layer")
+            self.error("E1", ln, "F4: feature defined outside of any '## Layer:' layer")
         self.feature = feature
         self.last_content_line = ln
 
@@ -279,7 +279,7 @@ class _Parser:
         if value in ("—", "-"):
             return []
         if not value:
-            self.error("E1", ln, "F9: '**Зависит:**' must list [Имя](#id) links or be '—'")
+            self.error("E1", ln, "F9: '**Depends:**' must list [Name](#id) links or be '—'")
             return []
         anchors: list[str] = []
         for item in value.split(","):
@@ -289,7 +289,7 @@ class _Parser:
             m = _RE_DEP_LINK.match(item)
             if not m:
                 self.error(
-                    "E1", ln, f"F9: dependency {item!r} must be an anchor link like [Имя](#id)"
+                    "E1", ln, f"F9: dependency {item!r} must be an anchor link like [Name](#id)"
                 )
                 continue
             anchors.append(m.group(2))
@@ -305,7 +305,7 @@ class _Parser:
                 "E1",
                 f.line_start,
                 f"F6: feature body has {self.body_count} lines (max {MAX_BODY_LINES}; "
-                "blank lines and '**Используется:**' are not counted)",
+                "blank lines and '**Used by:**' are not counted)",
             )
         seen: dict[str, int] = {}
         for name, ln in self.field_seq:
@@ -325,7 +325,7 @@ class _Parser:
                 "E1",
                 f.line_start,
                 "F7: fields must appear in order "
-                "'**Что:**', '**Файлы:**', '**Зависит:**', '**Статус:**'",
+                "'**What:**', '**Files:**', '**Depends:**', '**Status:**'",
             )
         self.feature = None
         self.field_seq = []

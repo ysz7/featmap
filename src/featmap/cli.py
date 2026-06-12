@@ -74,9 +74,9 @@ def cmd_links(_args: argparse.Namespace) -> int:
         if eol == "\r\n":
             new_text = new_text.replace("\n", "\r\n")
         map_path.write_bytes(new_text.encode("utf-8"))
-        print(f"updated '**Используется:**' for {changed} feature(s)")
+        print(f"updated '**Used by:**' for {changed} feature(s)")
     else:
-        print("'**Используется:**' lines already in sync")
+        print("'**Used by:**' lines already in sync")
     return 0
 
 
@@ -115,7 +115,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_check.set_defaults(func=cmd_check)
 
     p_links = sub.add_parser(
-        "links", help="regenerate '**Используется:**' reverse links in MAP.md"
+        "links", help="regenerate '**Used by:**' reverse links in MAP.md"
     )
     p_links.set_defaults(func=cmd_links)
 

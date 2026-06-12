@@ -35,7 +35,7 @@ def validate(result: ParseResult, repo_root: Path | None = None) -> list[Violati
         for dep in feature.depends:
             if dep not in anchors:
                 out.append(
-                    Violation("E3", line, f"'**Зависит:**' references unknown anchor '#{dep}'")
+                    Violation("E3", line, f"'**Depends:**' references unknown anchor '#{dep}'")
                 )
             elif anchors[dep].status == "deprecated":
                 out.append(
@@ -77,7 +77,7 @@ def validate(result: ParseResult, repo_root: Path | None = None) -> list[Violati
                 Violation(
                     "W3",
                     feature.used_by_line or feature.line_start,
-                    f"'**Используется:**' is out of sync for '#{feature.anchor}'; "
+                    f"'**Used by:**' is out of sync for '#{feature.anchor}'; "
                     "run 'featmap links'",
                 )
             )

@@ -86,14 +86,14 @@ def test_init_prints_bootstrap_prompt_for_existing_code(git_repo: Path, capsys):
     (git_repo / "src" / "main.py").write_text("print('hi')\n", encoding="utf-8")
     run_init(git_repo)
     out = capsys.readouterr().out
-    assert "Просканируй этот проект" in out
+    assert "Scan this project" in out
     assert "<!-- featmap v1 -->" in out
 
 
 def test_init_no_bootstrap_prompt_in_empty_repo(git_repo: Path, capsys):
     (git_repo / "README.md").write_text("# x\n", encoding="utf-8")
     run_init(git_repo)
-    assert "Просканируй" not in capsys.readouterr().out
+    assert "Scan this project" not in capsys.readouterr().out
 
 
 def test_init_hook_installs_pre_commit(git_repo: Path, capsys):
